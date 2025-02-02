@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Dashboard</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            let latitude = position.coords.latitude;
+            let longitude = position.coords.longitude;
+            let locationInput = document.getElementById("location");
+            locationInput.value = `Lat: ${latitude}, Lon: ${longitude}`;
+
+            let mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            document.getElementById("map-link").href = mapsUrl;
+            document.getElementById("map-link").style.display = "inline-block";
+        }
+
+        function showError(error) {
+            alert("Error fetching location. Please allow location access.");
+        }
+
+        function previewReport() {
+            let location = document.getElementById("location").value;
+            let category = document.getElementById("category").value;
+            let description = document.getElementById("description").value;
+            
+            if (location && category && description) {
+                document.getElementById("preview").innerHTML = `
+                    <h3>Report Preview</h3>
+                    <p><strong>Location:</strong> ${location}</p>
+                    <p><strong>Category:</strong> ${category}</p>
+                    <p><strong>Description:</strong> ${description}</p>
+                `;
+            } else {
+                alert("Please fill all fields before submitting.");
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Submit a Report</h2>
+        <form id="report-form">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="Click 'Get Location'" required>
+            <button type="button" class="location-btn" onclick="getLocation()">📍 Get Current Location</button>
+            <a id="map-link" target="_blank" style="display: none;">View on Google Maps</a>
+
+            <label for="category">Select a Category</label>
+            <select id="category" required>
+                <option value="">-- Select --</option>
+                <option value="illegal">Report Illegal Activities</option>
+                <option value="pollution">Report Pollution</option>
+                <option value="missing">File a Missing Case</option>
+                <option value="lcse">Lack of Coastal Safety Equipment</option>
+            </select>
+
+            <label for="description">Description</label>
+            <textarea id="description" rows="4" placeholder="Describe the issue..." required></textarea>
+
+            <button type="button" class="submit-btn" onclick="submitReport()">Submit Report</button>
+        </form>
+
+        <div id="preview" class="preview-box"></div>
+    </div>
+
+</body>
+
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDmU2R-p-ZoF92hSWGa58r9-ZDF2U47c3o",
+    authDomain: "seaguard-94338.firebaseapp.com",
+    databaseURL: "https://seaguard-94338-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "seaguard-94338",
+    storageBucket: "seaguard-94338.firebasestorage.app",
+    messagingSenderId: "567745398244",
+    appId: "1:567745398244:web:e331f02037625ef44373f1",
+    measurementId: "G-H7Q96VGHZ5"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  window.submitReport = function () {
+    let location = document.getElementById("location").value;
+    let category = document.getElementById("category").value;
+    let description = document.getElementById("description").value;
+
+    if (location && category && description) {
+      let reportData = {
+        location: location,
+        category: category,
+        description: description,
+        timestamp: new Date().toISOString()
+      };
+
+      push(ref(database, "reports"), reportData)
+        .then(() => {
+          alert("Report submitted successfully!");
+          document.getElementById("report-form").reset();
+        })
+        .catch((error) => {
+          alert("Error submitting report: " + error.message);
+        });
+    } else {
+      alert("Please fill all fields before submitting.");
+    }
+  };
+</script>
+
+
+
+<script src="cordova.js"></script>
+
+</html>
